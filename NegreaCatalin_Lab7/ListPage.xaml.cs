@@ -1,4 +1,4 @@
-namespace NegreaCatalin_Lab7;
+﻿namespace NegreaCatalin_Lab7;
 using NegreaCatalin_Lab7.Models;
 public partial class ListPage : ContentPage
 {
@@ -19,6 +19,34 @@ public partial class ListPage : ContentPage
         var slist = (ShopList)BindingContext;
         await App.Database.DeleteShopListAsync(slist);
         await Navigation.PopAsync();
+    }
+    async void OnChooseButtonClicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new ProductPage((ShopList)this.BindingContext)
+        {
+            BindingContext = new Product()
+        });
+    }
+    async void OnDeleteItemButtonClicked(object sender, EventArgs e)
+    {
+        var currentShopList = BindingContext as ShopList;
+        var selectedProduct = listView.SelectedItem as Product;
+
+        if (selectedProduct != null && currentShopList != null)
+        {
+            await App.Database.DeleteProductFromShopListAsync(selectedProduct.ID, currentShopList.ID);
+
+            listView.ItemsSource = await App.Database.GetListProductsAsync(currentShopList.ID);
+
+            listView.SelectedItem = null;
+        }
+    }
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        var shopl = (ShopList)BindingContext;
+
+        listView.ItemsSource = await App.Database.GetListProductsAsync(shopl.ID);
     }
 
 }
